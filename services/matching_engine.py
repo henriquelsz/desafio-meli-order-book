@@ -17,12 +17,14 @@ class MatchingEngine:
 
     def match_orders(self) -> List[TradeExecuted]:
         trades = []
-
+        
         while self.buy_orders and self.sell_orders:
             buy = self.buy_orders[0] #Ordem com MAIOR preco de compra
             sell = self.sell_orders[0] #Ordem com menor preco de venda
 
             if buy.price.value >= sell.price.value:
+                trade_quantity = min(buy.quantity.value, sell.quantity.value)
+
                 trade = Trade(
                     id = f"{buy.id}-{sell.id}",
                     buy_order_id = buy.id,
@@ -34,12 +36,18 @@ class MatchingEngine:
 
                 trades.append(TradeExecuted(trade))
 
-                heapq.heappop(self.buy_orders) #remove no raiz (maior preco de compra)
-                heapq.heappop(self.sell_orders) #remove no raiz (menor preco de compra)
+                #Subtrai a quantidade negociada nas ordens
+                buy.quantity.value -= trade_quantity
+                sell.quantity.value -= trade_quantity
 
-                buy.status = OrderStatus.FILLED
-                sell.status = OrderStatus.FILLED
-            
+                #Remove ordens completamente preenchidas
+                if buy.quantity.value == 0:
+                    heapq.heappop(self.buy_orders) #remove no raiz (maior preco de compra)
+                    buy.status = OrderStatus.FILLED
+                if sell.quantity.value == 0:
+                    heapq.heappop(self.sell_orders) #remove no raiz (menor preco de compra)
+                    sell.status = OrderStatus.FILLED
+
             else:
                 break
         
@@ -54,5 +62,6 @@ if __name__ == "__main__":
     engine.place_order(order1)
     engine.place_order(order2)
     trades = engine.match_orders()
-    orderbook = [t.trade.id for t in trades]
-    print(f"trades: {orderbook}")
+    
+    for t in trades:
+        print(f"{t}")

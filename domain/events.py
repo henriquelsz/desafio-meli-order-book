@@ -7,3 +7,6 @@ class OrderCreated:
 class TradeExecuted:
     def __init__(self, trade: Trade):
         self.trade = trade
+    
+    def __repr__(self):
+        return f"{self.trade}"
