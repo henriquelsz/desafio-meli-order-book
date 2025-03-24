@@ -1,9 +1,9 @@
-from value_object import Price, Quantity, OrderType, OrderStatus
+from domain.value_object import Price, Quantity, OrderType, OrderStatus
 
 class Order:
-    def __init__(self, id: str, user_id: str, type: OrderType, quantity: Quantity, price: Price):
+    def __init__(self, id: str, wallet_id: str, type: OrderType, quantity: Quantity, price: Price):
         self.id = id
-        self.user_id = user_id
+        self.wallet_id = wallet_id
         self.type = type
         self.quantity = quantity
         self.price = price
@@ -32,8 +32,8 @@ class Trade:
         return f"Trade(id={self.id}, buy_order_id={self.buy_order_id}, sell_order_id={self.sell_order_id}, price={self.price.value}, quantity={self.quantity}, timestamp={self.timestamp}"
 
 class Wallet:
-    def __init__(self, user_id: str, balance_brl: float, balance_vibranium: int, locked_balance: float = 0.0):
-        self.user_id = user_id
+    def __init__(self, id: str, balance_brl: float, balance_vibranium: int, locked_balance: float = 0.0):
+        self.id = id
         self.balance_brl = balance_brl
         self.balance_vibranium = balance_vibranium
         self.locked_balance = locked_balance
@@ -60,5 +60,5 @@ class Wallet:
 
 #Teste e Debug
 if __name__ == '__main__':
-    order1 = Order(id="1", user_id="userA", type=OrderType.BUY, quantity=Quantity(10), price=Price(105))
+    order1 = Order(id="1", wallet_id="carteiraA", type=OrderType.BUY, quantity=Quantity(10), price=Price(105))
     print(f'Ordem criada {order1.id}, tipo {order1.type}, preco {order1.price.value} e quantidade {order1.quantity.value}')

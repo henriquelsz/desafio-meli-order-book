@@ -1,4 +1,4 @@
-from entities import Order, Trade
+from domain.entities import Order, Trade
 
 class OrderCreated:
     def __init__(self, order: Order):
