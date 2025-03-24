@@ -3,11 +3,13 @@ from typing import List
 from domain.entities import Order, Trade
 from domain.value_object import OrderType, OrderStatus, Price, Quantity
 from domain.events import TradeExecuted
+from infrastructure.event_publisher import EventPublisher
 
 class MatchingEngine:
     def __init__(self):
         self.buy_orders = [] #Inicializando MaxHeap
         self.sell_orders = [] #Inicializando MinHeap
+        self.event_publisher = EventPublisher()
     
     def place_order(self, order: Order):
         if order.type == OrderType.BUY:
@@ -36,6 +38,9 @@ class MatchingEngine:
 
                 trades.append(TradeExecuted(trade))
 
+                #Publica evento no Rabbit
+                self.event_publisher.publish_event(trade)
+                
                 #Subtrai a quantidade negociada nas ordens
                 buy.quantity.value -= trade_quantity
                 sell.quantity.value -= trade_quantity
