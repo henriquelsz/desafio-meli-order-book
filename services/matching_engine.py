@@ -39,7 +39,20 @@ class MatchingEngine:
                 trades.append(TradeExecuted(trade))
 
                 #Publica evento no Rabbit
-                self.event_publisher.publish_event(trade)
+                event = {
+                    "event_type": "TradeExecuted",
+                    "trade": {
+                        "buy_order_id": trade.buy_order_id,
+                        "buy_wallet_id": buy.wallet_id,
+                        "sell_order_id": trade.sell_order_id,
+                        "sell_wallet_id": sell.wallet_id,
+                        "price": trade.price.value,
+                        "quantity": trade.quantity.value,
+                        "type": trade.buy_order_type.name,
+                        "timestamp": time.time()  
+                    }
+                }
+                self.event_publisher.publish_event(event)
                 
                 #Subtrai a quantidade negociada nas ordens
                 buy.quantity.value -= trade_quantity

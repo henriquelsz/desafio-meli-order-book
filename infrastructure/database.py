@@ -1,7 +1,7 @@
-from domain.entities import Wallet
+from domain.entities import Wallet, Order
 from typing import Dict
 
-class Database:
+class DatabaseWallet:
     def __init__(self):
         # Usando um dicionário simples para simular o banco de dados.
         self.wallets: Dict[str, Wallet] = {}
@@ -18,3 +18,14 @@ class Database:
         self.wallets[wallet.wallet_id] = wallet
         print(f"Carteira de {wallet.wallet_id} salva com sucesso!")
 
+class DatabaseOrder:
+    def __init__(self):
+        self.orders: Dict[str, Order] = {}
+    
+    def get_order(self, order_id: str) -> Order:
+        if order_id not in self.orders:
+            return "Order nao encontrada no Banco"
+        return self.orders[order_id]
+    
+    def save_order(self, order: Order) -> None:
+        self.orders[order.id] = order

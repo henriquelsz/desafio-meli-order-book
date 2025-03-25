@@ -1,6 +1,7 @@
 import pika
 import json
-from wallet_service import WalletService
+from services.wallet_service import WalletService
+from infrastructure.database import DatabaseOrder
 
 class EventConsumer:
     def __init__(self, rabbitmq_host: str = 'localhost', wallet_service: WalletService = None):
@@ -22,33 +23,25 @@ class EventConsumer:
 
 # Exemplo de um consumidor que processa um evento TradeExecuted
 def process_trade_event(ch, method, properties, body):
-    event_data = json.loads(body)
-    print(f"Evento recebido: {event_data}")
-    
-    # A lógica de crédito e débito é delegada ao WalletService
-    user_id = event_data['trade']['buy_user_id'] if event_data['trade']['type'] == 'BUY' else event_data['trade']['sell_user_id']
-    amount = event_data['trade']['amount']
-    quantity = event_data['trade']['quantity']
+    event = json.loads(body)
 
-    # Aqui estamos processando uma compra ou venda
-    if event_data['event_type'] == 'TradeExecuted':
-        trade_data = event_data['trade']
-        print(f"Processando trade: {trade_data}")
-        
-        if trade_data['type'] == 'BUY':
-            # Compra: debitamos o valor da conta e creditamos o Vibranium
-            wallet_service.debit(user_id, amount)
-            # Se for uma compra, o usuário ganha Vibranium, então creditamos isso na wallet.
-            wallet_service.lock_funds(user_id, amount)  # Bloqueia o valor que o usuário está comprando
-        elif trade_data['type'] == 'SELL':
-            # Venda: creditamos o valor na conta e debitamos o Vibranium
-            wallet_service.credit(user_id, amount)
-            # Se for uma venda, o usuário perde o Vibranium, então debitamos isso na wallet.
-            wallet_service.unlock_funds(user_id, amount)  # Desbloqueia o valor após a venda.
+    if event["event_type"] == "TradeExecuted":
+        trade = event["trade"]
+        buy_order_id = trade["buy_order_id"]
+        sell_order_id = trade["sell_order_id"]
+        price = trade["price"]
+        quantity = trade["quantity"]
+        buy_wallet_id = trade["buy_wallet_id"]
+        sell_wallet_id = trade["sell_wallet_id"] 
 
-        print(f"Trade processada com sucesso!")
+        # O vendedor credita BRL e debita Vibranium
+        self.wallet_service.credit_brl_debit_vibranium(sell_wallet_id, amount= price * quantity, quantity=quantity)  
 
-# Inicialização do consumidor
-wallet_service = WalletService(wallet_repository)  # Agora passando o WalletService
-consumer = EventConsumer(wallet_service=wallet_service)
-consumer.consume_event('TradeExecuted', process_trade_event)
+        # O comprador debita BRL e credita Vibranium
+        self.wallet_service.debit_brl_credit_vibranium(buy_wallet_id, price * quantity)  
+
+        print(f"Trade processada: Buy Order {buy_order_id}, Sell Order {sell_order_id}")
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+

@@ -38,14 +38,20 @@ class Wallet:
         self.balance_vibranium = balance_vibranium
         self.locked_balance = locked_balance
 
-    def credit(self, amount: float):
+    def credit_brl(self, amount: float):
         self.balance_brl += amount
     
-    def debit(self, amount: float):
+    def debit_brl(self, amount: float):
         if amount > self.balance_brl:
             raise ValueError("Fundos insuficientes")
         self.balance_brl -= amount
     
+    def credit_vibranium(self, amount: int):
+        self.balance_vibranium += amount
+
+    def debit_vibranium(self, amount: int):
+        self.balance_vibranium -= amount
+            
     def lock_funds(self, amount: float):
         if amout > self.balance_brl:
             raise ValueError("Fundos insuficientes para travar")
