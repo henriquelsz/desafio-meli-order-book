@@ -8,11 +8,11 @@ class WalletService:
         """Credita o saldo e debita vibranium na wallet do usuário (ordem de venda)"""
         wallet = self.wallet_repository.get_wallet(wallet_id)
         
-            if wallet:
-                wallet.credit_brl(amount)
-                wallet.debit_vibranium(quantity)
-            else:
-                raise ValueError(f"Wallet {wallet_id} not found")
+        if wallet:
+            wallet.credit_brl(amount)
+            wallet.debit_vibranium(quantity)
+        else:
+            raise ValueError(f"Wallet {wallet_id} not found")
 
     def debit_brl_credit_vibranium(self, wallet_id: str, amount: float, quantity: int):
         """Debita o saldo e credita vibranium na wallet do usuário (ordem de compra)"""

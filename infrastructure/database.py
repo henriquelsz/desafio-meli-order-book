@@ -9,14 +9,13 @@ class DatabaseWallet:
     def get_wallet(self, wallet_id: str) -> Wallet:
         """Obtém a carteira do usuário"""
         if wallet_id not in self.wallets:
-            # Se a carteira não existir, cria uma nova
-            self.wallets[wallet_id] = Wallet(wallet_id=wallet_id, balance_brl=0.0, balance_vibranium=0.0)
+            return None
         return self.wallets[wallet_id]
 
     def save_wallet(self, wallet: Wallet) -> None:
         """Salva ou atualiza a carteira no banco de dados"""
-        self.wallets[wallet.wallet_id] = wallet
-        print(f"Carteira de {wallet.wallet_id} salva com sucesso!")
+        self.wallets[wallet.id] = wallet
+        print(f"Carteira de {wallet.id} salva com sucesso!")
 
 class DatabaseOrder:
     def __init__(self):

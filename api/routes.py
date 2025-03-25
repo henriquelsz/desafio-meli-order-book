@@ -1,24 +1,33 @@
 from fastapi import APIRouter, HTTPException
-from domain.entities import Order
+from domain.entities import Order, Wallet
 from domain.value_object import OrderType, Price, Quantity
 from services.matching_engine import MatchingEngine
 from services.wallet_service import WalletService
-from event_consumer import EventConsumer, process_trade_event
+from infrastructure.event_consumer import EventConsumer, process_trade_event
 from infrastructure.database import DatabaseOrder, DatabaseWallet
+import threading
 
 router = APIRouter()
 matching_engine = MatchingEngine()
 
-# Instanciamos apenas UMA VEZ
+# Inicializando Banco de Dados
 shared_wallet_db = DatabaseWallet()
 shared_order_db = DatabaseOrder()
 
-# Se houver vários consumidores, todos compartilham a mesma instância
+#Inicializando wallet
 wallet_service = WalletService(wallet_repository=shared_wallet_db)
 
 # Consumidor 
-consumer = EventConsumer(wallet_service=wallet_service)
-consumer.consume_event('TradeExecuted', process_trade_event)
+def start_event_consumer():
+    """
+    Inicia o EventConsumer em uma thread separada para não travar a API.
+    """
+    consumer = EventConsumer(wallet_service=wallet_service)
+    consumer.consume_event('TradeExecuted', process_trade_event)
+
+# Criar uma thread para rodar o EventConsumer sem bloquear a API
+event_consumer_thread = threading.Thread(target=start_event_consumer, daemon=True)
+event_consumer_thread.start()
 
 @router.post("/orders")
 def place_order(wallet_id: str, order_type: OrderType, quantity: int, price: float):
