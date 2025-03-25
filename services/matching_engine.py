@@ -4,6 +4,7 @@ from domain.entities import Order, Trade
 from domain.value_object import OrderType, OrderStatus, Price, Quantity
 from domain.events import TradeExecuted
 from infrastructure.event_publisher import EventPublisher
+import time
 
 class MatchingEngine:
     def __init__(self):
@@ -47,8 +48,7 @@ class MatchingEngine:
                         "sell_order_id": trade.sell_order_id,
                         "sell_wallet_id": sell.wallet_id,
                         "price": trade.price.value,
-                        "quantity": trade.quantity.value,
-                        "type": trade.buy_order_type.name,
+                        "quantity": trade.quantity,
                         "timestamp": time.time()  
                     }
                 }
@@ -70,16 +70,3 @@ class MatchingEngine:
                 break
         
         return trades
-
-# Testando classe MatchingEngine
-if __name__ == "__main__":
-    order1 = Order(id="1", user_id="userA", type=OrderType.BUY, quantity=Quantity(10), price=Price(106))
-    order2 = Order(id="2", user_id="userB", type=OrderType.SELL, quantity=Quantity(10), price=Price(105))
-    engine = MatchingEngine()
-
-    engine.place_order(order1)
-    engine.place_order(order2)
-    trades = engine.match_orders()
-    
-    for t in trades:
-        print(f"{t}")

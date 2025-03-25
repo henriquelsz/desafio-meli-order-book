@@ -9,13 +9,29 @@ class EventPublisher:
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.queue_name, durable=True) #Inicializa a fila
 
-    def publish_event(self, event):
-        self.channel.basic_publish(
-            exchange='',
-            routing_key=self.queue_name,
-            body=json.dumps(event),
-            properties=pika.BasicProperties(delivery_mode=2) #Torna a mensagem persistente
-        )
-
+    def publish_event(self, event: dict):
+        try:
+            # Verificar se o canal está aberto
+            if self.channel.is_open:
+                self.channel.basic_publish(
+                    exchange='',
+                    routing_key='TradeExecuted',
+                    body=json.dumps(event),
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,  # Mensagem persistente
+                    )
+                )
+            else:
+                print("Channel is closed. Unable to publish event.")
+        except pika.exceptions.AMQPConnectionError as e:
+            print(f"Error publishing event: {e}")
+            # Reconnection logic if needed
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+    
     def close(self):
-        self.connection.close() #Fecha a conexao com o Rabbit
+        """Certifique-se de fechar o canal e a conexão corretamente"""
+        if self.channel.is_open:
+            self.channel.close()
+        if self.connection.is_open:
+            self.connection.close()

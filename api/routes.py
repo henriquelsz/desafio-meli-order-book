@@ -63,7 +63,7 @@ def match_orders():
     return {"trades_executadas": executed_trades}
 
 @router.post("/wallets")
-def create_wallet(wallet_id: str, initial_brl: float = 0.0, initial_vibranium: float = 0.0):
+def create_wallet(wallet_id: str, balance_brl: float = 0.0, balance_vibranium: float = 0.0):
     """
     Cria uma nova wallet com os saldos iniciais de BRL e Vibranium.
     """
@@ -75,16 +75,16 @@ def create_wallet(wallet_id: str, initial_brl: float = 0.0, initial_vibranium: f
     # Cria a carteira e salva no DatabaseWallet
     new_wallet = Wallet(
         id=wallet_id,
-        balance_brl=initial_brl,
-        balance_vibranium=initial_vibranium
+        balance_brl=balance_brl,
+        balance_vibranium=balance_vibranium
     )
     shared_wallet_db.save_wallet(new_wallet)
 
     return {
         "message": "Wallet criada com sucesso!",
         "wallet_id": wallet_id,
-        "balance_brl": initial_brl,
-        "balance_vibranium": initial_vibranium
+        "balance_brl": balance_brl,
+        "balance_vibranium": balance_vibranium
     }
 
 @router.get("/wallets/{wallet_id}")
