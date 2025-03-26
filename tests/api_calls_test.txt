@@ -1,0 +1,48 @@
+1:
+curl -X 'POST' \
+  'http://localhost:8000/wallets?wallet_id=wallet_1&balance_brl=10000&balance_vibranium=50' \
+  -H 'accept: application/json'
+
+curl -X 'POST' \
+  'http://localhost:8000/wallets?wallet_id=wallet_2&balance_brl=20000&balance_vibranium=30' \
+  -H 'accept: application/json'
+
+curl -X 'POST' \
+  'http://localhost:8000/wallets?wallet_id=wallet_3&balance_brl=5000&balance_vibranium=70' \
+  -H 'accept: application/json'
+
+2:
+curl -X 'POST' \
+  'http://localhost:8000/orders?wallet_id=wallet_1&order_type=BUY&quantity=10&price=200' \
+  -H 'accept: application/json'
+
+curl -X 'POST' \
+  'http://localhost:8000/orders?wallet_id=wallet_2&order_type=SELL&quantity=5&price=180' \
+  -H 'accept: application/json'
+
+curl -X 'POST' \
+  'http://localhost:8000/orders?wallet_id=wallet_3&order_type=BUY&quantity=15&price=190' \
+  -H 'accept: application/json'
+
+curl -X 'POST' \
+  'http://localhost:8000/orders?wallet_id=wallet_2&order_type=SELL&quantity=10&price=195' \
+  -H 'accept: application/json'
+
+3:
+curl -X 'GET' \
+  'http://localhost:8000/orderbook' \
+  -H 'accept: application/json'
+
+4:
+curl -X 'GET' \
+  'http://localhost:8000/wallets/wallet_1' \
+  -H 'accept: application/json'
+
+curl -X 'GET' \
+  'http://localhost:8000/wallets/wallet_2' \
+  -H 'accept: application/json'
+
+curl -X 'GET' \
+  'http://localhost:8000/wallets/wallet_3' \
+  -H 'accept: application/json'
+

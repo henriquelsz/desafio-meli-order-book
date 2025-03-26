@@ -10,11 +10,12 @@ class EventConsumer:
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
         self.channel = self.connection.channel()
 
-    def consume_event(self, event_name: str, callback):
-        """Consumir um evento de uma fila do RabbitMQ"""
-        self.channel.queue_declare(queue=event_name, durable=True)
-        self.channel.basic_consume(queue=event_name, on_message_callback=callback, auto_ack=True)
-        print(f"Esperando eventos da fila '{event_name}'...")
+    def consume_event(self, event_type: str, callback):
+        """Consumir um evento de uma fila do RabbitMQ, com base no tipo de evento"""
+        # Declarar a fila correspondente ao tipo de evento
+        self.channel.queue_declare(queue="trade_queue", durable=True)
+        self.channel.basic_consume(queue="trade_queue", on_message_callback=callback, auto_ack=True)
+        print(f"Esperando eventos da fila '{event_type}'...")
         self.channel.start_consuming()
 
     def close(self):
@@ -22,7 +23,7 @@ class EventConsumer:
         self.connection.close()
 
 # Exemplo de um consumidor que processa um evento TradeExecuted
-def process_trade_event(ch, method, properties, body):
+def process_trade_event(ch, method, properties, body, wallet_service: WalletService):
     event = json.loads(body)
 
     if event["event_type"] == "TradeExecuted":
@@ -35,13 +36,30 @@ def process_trade_event(ch, method, properties, body):
         sell_wallet_id = trade["sell_wallet_id"] 
 
         # O vendedor credita BRL e debita Vibranium
-        self.wallet_service.credit_brl_debit_vibranium(sell_wallet_id, amount= price * quantity, quantity=quantity)  
+        wallet_service.credit_brl_debit_vibranium(sell_wallet_id, amount=price * quantity, quantity=quantity)
 
         # O comprador debita BRL e credita Vibranium
-        self.wallet_service.debit_brl_credit_vibranium(buy_wallet_id, price * quantity)  
+        wallet_service.debit_brl_credit_vibranium(buy_wallet_id, amount=price * quantity, quantity=quantity)
 
         print(f"Trade processada: Buy Order {buy_order_id}, Sell Order {sell_order_id}")
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+# Exemplo de um consumidor que processa um evento OrderCreated
+def process_order_event(ch, method, properties, body):
+    event = json.loads(body)
 
+    if event["event_type"] == "OrderCreated":
+        order = event["order"]
+        order_id = order["id"]
+        wallet_id = order["wallet_id"]
+        order_type = order["type"]
+        quantity = order["quantity"]
+        price = order["price"]
+        status = order["status"]
+
+        # Realiza algum processamento relacionado à criação de ordens
+        # (ex: validar, armazenar no banco, ou qualquer outra lógica necessária)
+        print(f"Ordem criada: Order ID {order_id}, Wallet ID {wallet_id}, Type {order_type}, Quantity {quantity}, Price {price}, Status {status}")
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)

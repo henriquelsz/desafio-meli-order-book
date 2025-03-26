@@ -3,9 +3,8 @@ from domain.entities import Order, Wallet
 from domain.value_object import OrderType, Price, Quantity
 from services.matching_engine import MatchingEngine
 from services.wallet_service import WalletService
-from infrastructure.event_consumer import EventConsumer, process_trade_event
+from services.order_service import OrderService
 from infrastructure.database import DatabaseOrder, DatabaseWallet
-import threading
 
 router = APIRouter()
 matching_engine = MatchingEngine()
@@ -14,53 +13,26 @@ matching_engine = MatchingEngine()
 shared_wallet_db = DatabaseWallet()
 shared_order_db = DatabaseOrder()
 
-#Inicializando wallet
+# Inicializando serviços
 wallet_service = WalletService(wallet_repository=shared_wallet_db)
-
-# Consumidor 
-def start_event_consumer():
-    """
-    Inicia o EventConsumer em uma thread separada para não travar a API.
-    """
-    consumer = EventConsumer(wallet_service=wallet_service)
-    consumer.consume_event('TradeExecuted', process_trade_event)
-
-# Criar uma thread para rodar o EventConsumer sem bloquear a API
-event_consumer_thread = threading.Thread(target=start_event_consumer, daemon=True)
-event_consumer_thread.start()
+order_service = OrderService(order_repository=shared_order_db)
 
 @router.post("/orders")
-def place_order(wallet_id: str, order_type: OrderType, quantity: int, price: float):
-    #Recebendo uma order de compra ou venda e adicionando no Order Book
+def create_order(wallet_id: str, order_type: OrderType, quantity: int, price: float):
+    # Recebendo uma order de compra ou venda e adicionando no Order Book
     try:
-        order = Order(
-            id=f"order-{wallet_id}-{price}",
-            wallet_id = wallet_id,
-            type = order_type,
-            quantity = Quantity(quantity),
-            price = Price(price)
-        )
-        #appenda ordem no databse
-        shared_order_db.save_order(order)
-        #addiciona order a matching engine
-        event = matching_engine.place_order(order)
-        return  {"message": "Ordem adicionada com sucesso!", "event": event}
+        order = order_service.create_order(wallet_id, order_type, quantity, price)
+        return {"message": "Order criada com sucesso", "order": order}   
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/orderbook")
 def get_order_book():
-    #Retorna o order book no estado atual
+    # Retorna o order book no estado atual
     return {
         "buy_orders": [order.__dict__ for order in matching_engine.buy_orders],
         "sell_orders": [order.__dict__ for order in matching_engine.sell_orders]
     }
-
-@router.post("/match")
-def match_orders():
-    #Executa o casamento das ordens
-    executed_trades = matching_engine.match_orders()
-    return {"trades_executadas": executed_trades}
 
 @router.post("/wallets")
 def create_wallet(wallet_id: str, balance_brl: float = 0.0, balance_vibranium: float = 0.0):

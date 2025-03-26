@@ -1,16 +1,20 @@
 import heapq
+import json
+import pika
+import time
+import threading
 from typing import List
 from domain.entities import Order, Trade
 from domain.value_object import OrderType, OrderStatus, Price, Quantity
 from domain.events import TradeExecuted
 from infrastructure.event_publisher import EventPublisher
-import time
 
 class MatchingEngine:
     def __init__(self):
         self.buy_orders = [] #Inicializando MaxHeap
         self.sell_orders = [] #Inicializando MinHeap
         self.event_publisher = EventPublisher()
+        self.start_consumer_thread() #Funcao que incializa a thread do consumer
     
     def place_order(self, order: Order):
         if order.type == OrderType.BUY:
@@ -52,7 +56,7 @@ class MatchingEngine:
                         "timestamp": time.time()  
                     }
                 }
-                self.event_publisher.publish_event(event)
+                self.event_publisher.publish_event(event, event_type="TradeExecuted")
                 
                 #Subtrai a quantidade negociada nas ordens
                 buy.quantity.value -= trade_quantity
@@ -70,3 +74,33 @@ class MatchingEngine:
                 break
         
         return trades
+
+
+    def init_consumer(self):
+        """ Inicializa o consumidor do RabbitMQ para processar novas ordens """
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+        channel.queue_declare(queue='order_queue', durable=True)
+
+        def callback(ch, method, properties, body):
+            """ Callback chamado ao receber uma nova ordem do RabbitMQ """
+            order_data = json.loads(body)
+            order_data = order_data["order"]
+            order = Order(
+                id=order_data["id"],
+                wallet_id=order_data["wallet_id"],
+                type=OrderType(order_data["type"]),
+                quantity=Quantity(order_data["quantity"]),
+                price=Price(order_data["price"])
+            )
+            self.place_order(order)
+            self.match_orders()  # Tenta casar ordens imediatamente
+
+        channel.basic_consume(queue='order_queue', on_message_callback=callback, auto_ack=False)
+        print(" [*] Waiting for order events")
+        channel.start_consuming()
+
+    def start_consumer_thread(self):
+        """ Inicia o consumidor do RabbitMQ em uma thread separada """
+        consumer_thread = threading.Thread(target=self.init_consumer, daemon=True)
+        consumer_thread.start()

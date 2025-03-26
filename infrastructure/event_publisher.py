@@ -2,30 +2,38 @@ import pika
 import json
 
 class EventPublisher:
-    def __init__(self, queue_name='trade_events', host='localhost'):
-        self.queue_name = queue_name
+    def __init__(self, host='localhost'):
         self.host = host
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(self.host))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=self.queue_name, durable=True) #Inicializa a fila
+        # Declarar as filas de eventos
+        self.channel.queue_declare(queue='order_queue', durable=True)
+        self.channel.queue_declare(queue='trade_queue', durable=True)
 
-    def publish_event(self, event: dict):
+    def publish_event(self, event: dict, event_type: str):
+        """Publica eventos de tipos diferentes (ordem ou trade)"""
         try:
+            routing_key = ''
+            if event_type == 'OrderCreated':
+                routing_key = 'order_queue'  # Fila para ordens
+            elif event_type == 'TradeExecuted':
+                routing_key = 'trade_queue'  # Fila para trades
+
             # Verificar se o canal está aberto
             if self.channel.is_open:
                 self.channel.basic_publish(
                     exchange='',
-                    routing_key='TradeExecuted',
+                    routing_key=routing_key,
                     body=json.dumps(event),
                     properties=pika.BasicProperties(
                         delivery_mode=2,  # Mensagem persistente
                     )
                 )
+                print(f"Evento '{event_type}' publicado com sucesso!")
             else:
                 print("Channel is closed. Unable to publish event.")
         except pika.exceptions.AMQPConnectionError as e:
             print(f"Error publishing event: {e}")
-            # Reconnection logic if needed
         except Exception as e:
             print(f"Unexpected error: {e}")
     
