@@ -52,19 +52,3 @@ class Wallet:
     def debit_vibranium(self, amount: int):
         self.balance_vibranium -= amount
             
-    def lock_funds(self, amount: float):
-        if amout > self.balance_brl:
-            raise ValueError("Fundos insuficientes para travar")
-        self.balance_brl -= amount
-        self.locked_balance += amount
-    
-    def unlock_funds(self, amount: float):
-        if amount > self.locked_balance:
-            raise ValueError("Quantidade maior que valor de fundos travados")
-        self.balance_brl += amount
-        self.locked_balance -= amount
-
-#Teste e Debug
-if __name__ == '__main__':
-    order1 = Order(id="1", wallet_id="carteiraA", type=OrderType.BUY, quantity=Quantity(10), price=Price(105))
-    print(f'Ordem criada {order1.id}, tipo {order1.type}, preco {order1.price.value} e quantidade {order1.quantity.value}')

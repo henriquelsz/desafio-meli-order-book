@@ -47,6 +47,7 @@ class MatchingEngine:
                 event = {
                     "event_type": "TradeExecuted",
                     "trade": {
+                        "id": trade.id,
                         "buy_order_id": trade.buy_order_id,
                         "buy_wallet_id": buy.wallet_id,
                         "sell_order_id": trade.sell_order_id,
@@ -95,6 +96,9 @@ class MatchingEngine:
             )
             self.place_order(order)
             self.match_orders()  # Tenta casar ordens imediatamente
+
+            #Enviar ACK para remover a mensagem da fila apos ser consumida
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
         channel.basic_consume(queue='order_queue', on_message_callback=callback, auto_ack=False)
         print(" [*] Waiting for order events")
