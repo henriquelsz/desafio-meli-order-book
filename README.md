@@ -4,7 +4,7 @@ Desafio do processo seletivo do Mercado Livre para desenvolver um Order Book
 Este projeto implementa um sistema de Order Book utilizando EventStoreDB para armazenar eventos de transações financeiras. O sistema é composto por múltiplos serviços, incluindo API, Order Service, Wallet Service, Matching Engine, e um Event Store. Todos os serviços são containerizados usando Docker.
 
 ## Arquiteturas
-Este sistema utiliza uma arquitetura baseada em microserviços orienta a eventos e Event Sourcing para rastrear todas as operações de ordens e transações.
+Este sistema utiliza uma arquitetura baseada em microserviços orientada a eventos e Event Sourcing para rastrear todas as operações de ordens e transações.
 
 - Event Store: Armazena os eventos de transações, ordens e atualizações na carteira.
 
@@ -21,7 +21,7 @@ Este sistema utiliza uma arquitetura baseada em microserviços orienta a eventos
 - Redis Mutex: Responsável por fazer um lock na Carteira evitar transações concorrentes e trades duplicadas (idempotência)
 
 
-## Requisitos
+## Pré requisitos
 
 Antes de começar, certifique-se de que os seguintes softwares estão instalados:
 
