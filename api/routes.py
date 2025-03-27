@@ -5,17 +5,19 @@ from services.matching_engine import MatchingEngine
 from services.wallet_service import WalletService
 from services.order_service import OrderService
 from infrastructure.database import DatabaseOrder, DatabaseWallet
+from event_store.event_store import EventStore
 
 router = APIRouter()
-matching_engine = MatchingEngine()
 
-# Inicializando Banco de Dados
+#Inicializando Banco de Dados
 shared_wallet_db = DatabaseWallet()
 shared_order_db = DatabaseOrder()
+event_store_db = EventStore()
 
 # Inicializando serviços
-wallet_service = WalletService(wallet_repository=shared_wallet_db)
-order_service = OrderService(order_repository=shared_order_db)
+wallet_service = WalletService(wallet_repository=shared_wallet_db, event_store=event_store_db)
+order_service = OrderService(order_repository=shared_order_db, event_store=event_store_db)
+matching_engine = MatchingEngine(event_store=event_store_db)
 
 @router.post("/orders")
 def create_order(wallet_id: str, order_type: OrderType, quantity: int, price: float):
@@ -74,3 +76,11 @@ def get_wallet(wallet_id: str):
         "balance_vibranium": wallet.balance_vibranium,
         "locked_balance": wallet.locked_balance
     }
+
+@router.get("/events")
+def get_events():
+    """
+    Retorna os eventos armazenados no EventStoreDB.
+    """
+    events = event_store_db.get_events()
+    return {"events": events}

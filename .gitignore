@@ -27,3 +27,9 @@ dist/
 
 # Ignore environment variables file
 .env
+
+# Ignorar volumes do Docker
+volumes/
+*.log
+.env
+

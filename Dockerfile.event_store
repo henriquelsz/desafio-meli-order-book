@@ -1,0 +1,15 @@
+FROM python:3.10
+WORKDIR /app
+
+COPY requirements.txt .
+COPY domain/ domain/
+COPY infrastructure/ infrastructure/
+COPY event_store/ event_store/
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Adicionando para garantir que o diretório seja encontrado
+ENV PYTHONPATH=/app 
+
+EXPOSE 5004
+CMD ["python", "event_store/event_store.py"]

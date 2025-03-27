@@ -1,0 +1,18 @@
+FROM python:3.10
+WORKDIR /app
+
+COPY requirements.txt .
+COPY domain/ domain/
+COPY infrastructure/ infrastructure/
+COPY services/order_service.py services/
+
+# Copiar todos os arquivos do projeto para dentro do container
+COPY . /app
+
+# Configurar o PYTHONPATH para encontrar os módulos corretamente
+ENV PYTHONPATH="/app:/app/domain:/app/infrastructure"
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 5002
+CMD ["python", "services/order_service.py"]

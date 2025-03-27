@@ -2,13 +2,15 @@ from domain.entities import Order
 from domain.value_object import OrderType, OrderStatus, Price, Quantity
 from infrastructure.event_publisher import EventPublisher
 from infrastructure.database import DatabaseOrder
+from event_store.event_store import EventStore
 import time
 import uuid
 
 class OrderService:
-    def __init__(self, order_repository: DatabaseOrder):
+    def __init__(self, order_repository: DatabaseOrder, event_store: EventStore):
         self.order_repository = order_repository
         self.event_publisher = EventPublisher()
+        self.event_store = event_store
     
     def create_order(self, wallet_id: str, order_type: OrderType, quantity: float, price: float) -> Order:
         """Cria uma nova ordem, persiste no banco e publica evento para o Matching Engine"""
@@ -38,7 +40,10 @@ class OrderService:
                 "timestamp": time.time()
             }
         }
-        
+
+        #Armazena evento OrderCreated
+        self.event_store.append_event(event_type="OrderCreated", event_data=[event])
+
         # Publicando no RabbitMQ
         self.event_publisher.publish_event(event, event_type="OrderCreated")
         

@@ -4,11 +4,14 @@ import threading
 import redis
 from infrastructure.database import DatabaseWallet
 from redis.exceptions import LockError
+from event_store.event_store import EventStore
+
 
 class WalletService:
-    def __init__(self, wallet_repository: DatabaseWallet):
+    def __init__(self, wallet_repository: DatabaseWallet, event_store: EventStore):
         self.wallet_repository = wallet_repository  # Repositório de wallets (banco em memória)
-        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)  # Conexão com Redis
+        self.event_store = event_store
+        self.redis_client = redis.Redis(host='redis', port=6379, db=0)  # Conexão com Redis
         self.start_consumer_thread()  # Inicia a thread do consumidor
 
     def credit_brl_debit_vibranium(self, wallet_id: str, amount: float, quantity: int):
@@ -23,6 +26,14 @@ class WalletService:
                     wallet.credit_brl(amount)
                     wallet.debit_vibranium(quantity)
                     self.wallet_repository.save_wallet(wallet)
+
+                    # Armazena evento WalletUpdate
+                    self.event_store.append_event("WalletUpdate", [{
+                        "id": wallet_id,
+                        "balance_brl": wallet.balance_brl,
+                        "balance_vibranium": wallet.balance_vibranium
+                    }])
+
                 else:
                     raise ValueError(f"Wallet {wallet_id} not found")
             finally:
@@ -42,6 +53,14 @@ class WalletService:
                     wallet.debit_brl(amount)
                     wallet.credit_vibranium(quantity)
                     self.wallet_repository.save_wallet(wallet)
+
+                    # Armazena evento WalletUpdate
+                    self.event_store.append_event("WalletUpdate", [{
+                        "id": wallet_id,
+                        "balance_brl": wallet.balance_brl,
+                        "balance_vibranium": wallet.balance_vibranium
+                    }])
+                    
                 else:
                     raise ValueError(f"Wallet {wallet_id} not found")
             finally:
@@ -51,7 +70,7 @@ class WalletService:
 
     def init_consumer(self):
         """ Inicializa o consumidor do RabbitMQ para processar eventos TradeExecuted """
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
         channel = connection.channel()
         channel.queue_declare(queue='trade_queue', durable=True)
 

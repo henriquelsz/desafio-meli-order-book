@@ -2,7 +2,7 @@ import pika
 import json
 
 class EventPublisher:
-    def __init__(self, host='localhost'):
+    def __init__(self, host='rabbitmq'):
         self.host = host
 
     def publish_event(self, event: dict, event_type: str):
@@ -26,7 +26,7 @@ class EventPublisher:
 
             print(f"Evento '{event_type}' publicado com sucesso!")
 
-            # ✅ Fecha a conexão corretamente após publicar
+            #Fecha a conexão corretamente após publicar
             channel.close()
             connection.close()
 

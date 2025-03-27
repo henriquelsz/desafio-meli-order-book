@@ -1,0 +1,24 @@
+FROM python:3.10
+WORKDIR /app
+
+# Copia todos os arquivos necessários para dentro do container
+COPY requirements.txt .
+COPY api/ api/
+COPY domain/ domain/
+COPY infrastructure/ infrastructure/
+COPY services/ services/
+COPY main.py .
+
+# Copiar todos os arquivos do projeto para dentro do container
+COPY . /app
+
+# Configurar o PYTHONPATH para encontrar os módulos corretamente
+ENV PYTHONPATH="/app:/app/domain:/app/infrastructure"
+# Instala as dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expõe a porta usada pelo FastAPI
+EXPOSE 8000
+
+# Comando para rodar o servidor
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

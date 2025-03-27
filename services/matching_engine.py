@@ -8,12 +8,14 @@ from domain.entities import Order, Trade
 from domain.value_object import OrderType, OrderStatus, Price, Quantity
 from domain.events import TradeExecuted
 from infrastructure.event_publisher import EventPublisher
+from event_store.event_store import EventStore
 
 class MatchingEngine:
-    def __init__(self):
+    def __init__(self, event_store: EventStore):
         self.buy_orders = [] #Inicializando MaxHeap
         self.sell_orders = [] #Inicializando MinHeap
         self.event_publisher = EventPublisher()
+        self.event_store = event_store
         self.start_consumer_thread() #Funcao que incializa a thread do consumer
     
     def place_order(self, order: Order):
@@ -57,6 +59,11 @@ class MatchingEngine:
                         "timestamp": time.time()  
                     }
                 }
+
+                #Armazena evento TradeExecuted
+                self.event_store.append_event(event_type="TradeExecuted", event_data=[event])
+
+                #Publica evento no Rabbit
                 self.event_publisher.publish_event(event, event_type="TradeExecuted")
                 
                 #Subtrai a quantidade negociada nas ordens
@@ -79,7 +86,7 @@ class MatchingEngine:
 
     def init_consumer(self):
         """ Inicializa o consumidor do RabbitMQ para processar novas ordens """
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
         channel = connection.channel()
         channel.queue_declare(queue='order_queue', durable=True)
 
