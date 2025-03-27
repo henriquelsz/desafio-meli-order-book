@@ -36,7 +36,7 @@ Primeiro, clone o repositório para a sua máquina local.
 
 ```bash
 git clone https://github.com/henriquelsz/desafio-meli-order-book.git
-cd https://github.com/henriquelsz/desafio-meli-order-book.git
+cd desafio-meli-order-book
 ```
 
 ### 2. Crie e inicie os containers com Docker Compose
