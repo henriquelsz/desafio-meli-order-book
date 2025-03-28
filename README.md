@@ -6,6 +6,9 @@ Este projeto implementa um sistema de Order Book utilizando EventStoreDB para ar
 ## Arquiteturas
 Este sistema utiliza uma arquitetura baseada em microserviços orientada a eventos e Event Sourcing para rastrear todas as operações de ordens e transações.
 
+### Arquitetur alto nivel:
+![Architecture-high-leve](imgs/Desafio-Meli-High Level Architecture.drawio.png)
+
 - Event Store: Armazena os eventos de transações, ordens e atualizações na carteira.
 
 - Order Service: Gerencia a criação e manipulação de ordens.
@@ -20,6 +23,8 @@ Este sistema utiliza uma arquitetura baseada em microserviços orientada a event
 
 - Redis Mutex: Responsável por fazer um lock na Carteira evitar transações concorrentes e trades duplicadas (idempotência)
 
+### Diagrama de Classes UML
+![Architecture-UML](imgs/Desafio-Meli-UML.drawio.png)
 
 ## Pré requisitos
 
@@ -100,7 +105,7 @@ curl -X 'POST' \
   Retorna os eventos do EventStore DB
 
   ### 5. Parar aplicação
-  Para parar os containers, uso o seguinte comando:
+  Para parar os containers, use o seguinte comando:
    ```bash
    docker compose down
    ```
