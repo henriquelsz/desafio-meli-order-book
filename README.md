@@ -23,7 +23,7 @@ Este sistema utiliza uma arquitetura baseada em microserviços orientada a event
 
 - Redis Mutex: Responsável por fazer um lock na Carteira evitar transações concorrentes e trades duplicadas (idempotência)
 
-### Diagrama de Classes UML
+### Diagrama de Classes UML:
 ![Architecture-UML](imgs/Desafio-Meli-UML.drawio.png)
 
 ## Pré requisitos
