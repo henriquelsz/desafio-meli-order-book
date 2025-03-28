@@ -7,7 +7,7 @@ Este projeto implementa um sistema de Order Book utilizando EventStoreDB para ar
 Este sistema utiliza uma arquitetura baseada em microserviços orientada a eventos e Event Sourcing para rastrear todas as operações de ordens e transações.
 
 ### Arquitetur alto nivel:
-![Architecture-high-leve](imgs/Desafio-Meli-High Level Architecture.drawio.png)
+![Architecture-high-leve](imgs/Desafio-Meli-High-Level-Architecture.drawio)
 
 - Event Store: Armazena os eventos de transações, ordens e atualizações na carteira.
 
